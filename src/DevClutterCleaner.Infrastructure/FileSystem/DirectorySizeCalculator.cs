@@ -2,22 +2,28 @@ namespace DevClutterCleaner.Infrastructure.FileSystem;
 
 public sealed class DirectorySizeCalculator : IDirectorySizeCalculator
 {
-    public long CalculateSize(string path)
+    public long CalculateSize(string path, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
         {
             return 0;
         }
 
-        return CalculateSizeSafe(new DirectoryInfo(path));
+        return CalculateSizeSafe(new DirectoryInfo(path), cancellationToken);
     }
 
-    private static long CalculateSizeSafe(DirectoryInfo directory)
+    private static long CalculateSizeSafe(DirectoryInfo directory, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         long total = 0;
 
         foreach (FileInfo file in EnumerateFilesSafe(directory))
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
                 total += file.Length;
@@ -32,17 +38,18 @@ public sealed class DirectorySizeCalculator : IDirectorySizeCalculator
 
         foreach (DirectoryInfo childDirectory in EnumerateDirectoriesSafe(directory))
         {
-            total += CalculateSizeSafe(childDirectory);
+            cancellationToken.ThrowIfCancellationRequested();
+            total += CalculateSizeSafe(childDirectory, cancellationToken);
         }
 
         return total;
     }
 
-    private static IEnumerable<FileInfo> EnumerateFilesSafe(DirectoryInfo directory)
+    private static IReadOnlyList<FileInfo> EnumerateFilesSafe(DirectoryInfo directory)
     {
         try
         {
-            return directory.EnumerateFiles();
+            return directory.EnumerateFiles().ToArray();
         }
         catch (IOException)
         {
@@ -54,11 +61,11 @@ public sealed class DirectorySizeCalculator : IDirectorySizeCalculator
         }
     }
 
-    private static IEnumerable<DirectoryInfo> EnumerateDirectoriesSafe(DirectoryInfo directory)
+    private static IReadOnlyList<DirectoryInfo> EnumerateDirectoriesSafe(DirectoryInfo directory)
     {
         try
         {
-            return directory.EnumerateDirectories();
+            return directory.EnumerateDirectories().ToArray();
         }
         catch (IOException)
         {

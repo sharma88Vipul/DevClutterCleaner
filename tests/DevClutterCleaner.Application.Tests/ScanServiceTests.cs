@@ -35,6 +35,32 @@ public sealed class ScanServiceTests
     }
 
     [Fact]
+    public async Task ScanAllAsync_PreservesOrderAndContinuesAfterScannerFailure()
+    {
+        ScanResult first = new(
+            new CacheTarget("first", "First", CacheCategory.Other, "C:\\first", false),
+            1,
+            Exists: true);
+        ScanResult last = new(
+            new CacheTarget("last", "Last", CacheCategory.Other, "C:\\last", false),
+            3,
+            Exists: true);
+        ScanService service = new([new StubScanner(first), new ThrowingScanner(), new StubScanner(last)]);
+
+        IReadOnlyList<ScanResult> results = await service.ScanAllAsync(CancellationToken.None);
+
+        Assert.Collection(
+            results,
+            result => Assert.Equal("first", result.Target.Id),
+            result =>
+            {
+                Assert.Equal("throwing-scanner", result.Target.Id);
+                Assert.NotNull(result.ErrorMessage);
+            },
+            result => Assert.Equal("last", result.Target.Id));
+    }
+
+    [Fact]
     public async Task ScanAllAsync_Throws_WhenCancellationIsRequested()
     {
         ScanService service = new([new StubScanner(new ScanResult(

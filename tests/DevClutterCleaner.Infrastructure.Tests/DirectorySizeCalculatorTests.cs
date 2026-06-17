@@ -20,7 +20,7 @@ public sealed class DirectorySizeCalculatorTests : IDisposable
         File.WriteAllBytes(Path.Combine(_rootPath, "root.bin"), new byte[10]);
         File.WriteAllBytes(Path.Combine(childPath, "child.bin"), new byte[15]);
 
-        long size = _calculator.CalculateSize(_rootPath);
+        long size = _calculator.CalculateSize(_rootPath, CancellationToken.None);
 
         Assert.Equal(25, size);
     }
@@ -30,9 +30,18 @@ public sealed class DirectorySizeCalculatorTests : IDisposable
     {
         string missingPath = Path.Combine(_rootPath, "missing");
 
-        long size = _calculator.CalculateSize(missingPath);
+        long size = _calculator.CalculateSize(missingPath, CancellationToken.None);
 
         Assert.Equal(0, size);
+    }
+
+    [Fact]
+    public void CalculateSize_Throws_WhenCancellationIsRequested()
+    {
+        using CancellationTokenSource cts = new();
+        cts.Cancel();
+
+        Assert.Throws<OperationCanceledException>(() => _calculator.CalculateSize(_rootPath, cts.Token));
     }
 
     public void Dispose()

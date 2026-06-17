@@ -1,55 +1,79 @@
 using System.Windows;
 using DevClutterCleaner.Application.Abstractions;
 using DevClutterCleaner.Application.Formatting;
-using DevClutterCleaner.Application.Services;
 using DevClutterCleaner.Domain;
-using DevClutterCleaner.Infrastructure.FileSystem;
-using DevClutterCleaner.Infrastructure.Scanners;
+using DevClutterCleaner.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DevClutterCleaner.UI;
 
 public partial class MainWindow : Window
 {
-    private readonly IScanService _scanService;
+    private readonly ServiceProvider _serviceProvider;
+    private readonly ICacheScanOrchestrator _scanOrchestrator;
 
     public MainWindow()
     {
         InitializeComponent();
 
-        DirectorySizeCalculator directorySizeCalculator = new();
-        _scanService = new ScanService([
-            new NuGetCacheScanner(directorySizeCalculator)
-        ]);
+        _serviceProvider = new ServiceCollection()
+            .AddDevClutterCleanerInfrastructure()
+            .BuildServiceProvider();
+        _scanOrchestrator = _serviceProvider.GetRequiredService<ICacheScanOrchestrator>();
     }
 
     private async void ScanButton_Click(object sender, RoutedEventArgs e)
     {
-        IReadOnlyList<ScanResult> results = await _scanService.ScanAllAsync(CancellationToken.None);
-        ScanResult? nugetResult = results.FirstOrDefault(result => result.Target.Id == NuGetCacheScanner.ScannerId);
+        ScanButton.IsEnabled = false;
+        StatusText.Text = string.Empty;
 
-        if (nugetResult is null)
+        try
         {
-            NuGetCacheResultText.Text = "NuGet Cache: Not available";
-            TotalReclaimableResultText.Text = "Total reclaimable space: 0 B";
-            StatusText.Text = "NuGet scanner was not registered.";
-            return;
-        }
+            IReadOnlyList<ScanResult> results = await _scanOrchestrator.ScanAllAsync(CancellationToken.None);
+            ResultsList.ItemsSource = results
+                .OrderBy(result => result.Target.DisplayName)
+                .Select(CreateRow)
+                .ToArray();
 
-        string size = FileSizeFormatter.Format(nugetResult.SizeInBytes);
-        NuGetCacheResultText.Text = $"NuGet Cache: {size}";
-        TotalReclaimableResultText.Text = $"Total reclaimable space: {size}";
-        StatusText.Text = GetStatusMessage(nugetResult);
+            long totalBytes = results.Where(result => result.Exists && string.IsNullOrWhiteSpace(result.ErrorMessage))
+                .Sum(result => result.SizeInBytes);
+            TotalReclaimableResultText.Text = $"Total reclaimable space: {FileSizeFormatter.Format(totalBytes)}";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText.Text = "Scan canceled.";
+        }
+        finally
+        {
+            ScanButton.IsEnabled = true;
+        }
     }
 
-    private static string GetStatusMessage(ScanResult result)
+    private static ScanResultRow CreateRow(ScanResult result)
     {
+        string status = "Scanned";
         if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
         {
-            return result.ErrorMessage;
+            status = result.ErrorMessage;
+        }
+        else if (!result.Exists)
+        {
+            status = "Not found";
         }
 
-        return result.Exists
-            ? $"Scanned: {result.Target.Path}"
-            : $"Folder not found: {result.Target.Path}";
+        return new ScanResultRow(
+            result.Target.DisplayName,
+            result.Target.Path,
+            result.Exists ? "Yes" : "No",
+            FileSizeFormatter.Format(result.SizeInBytes),
+            status);
     }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        _serviceProvider.Dispose();
+        base.OnClosed(e);
+    }
+
+    private sealed record ScanResultRow(string Name, string Path, string Exists, string Size, string Status);
 }

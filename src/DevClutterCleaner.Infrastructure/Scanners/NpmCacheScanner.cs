@@ -4,19 +4,19 @@ using DevClutterCleaner.Infrastructure.FileSystem;
 
 namespace DevClutterCleaner.Infrastructure.Scanners;
 
-public sealed class NuGetCacheScanner : ICacheScanner
+public sealed class NpmCacheScanner : ICacheScanner
 {
-    public const string ScannerId = "nuget-global-packages";
+    public const string ScannerId = "npm-cache";
 
     private readonly IDirectorySizeCalculator _directorySizeCalculator;
     private readonly Func<string> _pathProvider;
 
-    public NuGetCacheScanner(IDirectorySizeCalculator directorySizeCalculator)
-        : this(directorySizeCalculator, GetDefaultNuGetPackagesPath)
+    public NpmCacheScanner(IDirectorySizeCalculator directorySizeCalculator)
+        : this(directorySizeCalculator, GetDefaultNpmCachePath)
     {
     }
 
-    public NuGetCacheScanner(IDirectorySizeCalculator directorySizeCalculator, Func<string> pathProvider)
+    public NpmCacheScanner(IDirectorySizeCalculator directorySizeCalculator, Func<string> pathProvider)
     {
         _directorySizeCalculator = directorySizeCalculator;
         _pathProvider = pathProvider;
@@ -33,7 +33,7 @@ public sealed class NuGetCacheScanner : ICacheScanner
         string path = _pathProvider();
         CacheTarget target = new(
             ScannerId,
-            "NuGet Cache",
+            "npm Cache",
             TargetType,
             path,
             IsSafeToCleanByDefault: true);
@@ -54,9 +54,9 @@ public sealed class NuGetCacheScanner : ICacheScanner
         }
     }
 
-    private static string GetDefaultNuGetPackagesPath()
+    private static string GetDefaultNpmCachePath()
     {
-        string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        return Path.Combine(userProfile, ".nuget", "packages");
+        string localApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Combine(localApplicationData, "npm-cache");
     }
 }

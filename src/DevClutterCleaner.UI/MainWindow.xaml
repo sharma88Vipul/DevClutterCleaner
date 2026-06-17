@@ -5,10 +5,73 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="DevClutterCleaner"
-        Height="360"
-        Width="560"
-        MinHeight="320"
-        MinWidth="480">
+        Height="460"
+        Width="760"
+        MinHeight="420"
+        MinWidth="640"
+        Background="#F4F6F8"
+        FontFamily="Segoe UI">
+    <Window.Resources>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1F2933" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#5C6670" />
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#2563EB" />
+        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#1D4ED8" />
+        <SolidColorBrush x:Key="PrimaryPressedBrush" Color="#1E40AF" />
+        <SolidColorBrush x:Key="BorderBrushSoft" Color="#D7DCE1" />
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Height" Value="38" />
+            <Setter Property="MinWidth" Value="124" />
+            <Setter Property="Padding" Value="18,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="ButtonChrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonChrome" Property="Background" Value="{StaticResource PrimaryHoverBrush}" />
+                                <Setter TargetName="ButtonChrome" Property="BorderBrush" Value="{StaticResource PrimaryHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonChrome" Property="Background" Value="{StaticResource PrimaryPressedBrush}" />
+                                <Setter TargetName="ButtonChrome" Property="BorderBrush" Value="{StaticResource PrimaryPressedBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonChrome" Property="Background" Value="#AAB7C4" />
+                                <Setter TargetName="ButtonChrome" Property="BorderBrush" Value="#AAB7C4" />
+                                <Setter Property="Foreground" Value="#F7FAFC" />
+                                <Setter Property="Cursor" Value="Arrow" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="{x:Type GridViewColumnHeader}">
+            <Setter Property="Background" Value="#EEF2F7" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="8,7" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}" />
+        </Style>
+    </Window.Resources>
+
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -20,33 +83,63 @@
         <StackPanel>
             <TextBlock Text="DevClutterCleaner"
                        FontSize="24"
-                       FontWeight="SemiBold" />
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" />
             <TextBlock Text="MVP scanner for developer cache usage"
-                       Foreground="#5C6670"
+                       Foreground="{StaticResource TextSecondaryBrush}"
                        Margin="0,4,0,0" />
         </StackPanel>
 
-        <Button Grid.Row="1"
-                Content="Scan NuGet Cache"
-                Width="150"
-                Height="34"
+        <Button x:Name="ScanButton"
+                Grid.Row="1"
+                Content="Scan caches"
+                Style="{StaticResource PrimaryButtonStyle}"
                 Margin="0,24,0,16"
                 HorizontalAlignment="Left"
                 Click="ScanButton_Click" />
 
         <Border Grid.Row="2"
-                BorderBrush="#D7DCE1"
+                Background="White"
+                BorderBrush="{StaticResource BorderBrushSoft}"
                 BorderThickness="1"
-                Padding="16">
+                CornerRadius="8"
+                Padding="18">
             <StackPanel>
                 <TextBlock Text="Results"
+                           Foreground="{StaticResource TextPrimaryBrush}"
                            FontWeight="SemiBold"
                            Margin="0,0,0,12" />
-                <TextBlock x:Name="NuGetCacheResultText"
-                           Text="NuGet Cache: Not scanned"
-                           Margin="0,0,0,6" />
+                <ListView x:Name="ResultsList"
+                          MinHeight="170"
+                          Background="White"
+                          BorderBrush="{StaticResource BorderBrushSoft}"
+                          BorderThickness="1"
+                          Padding="0">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Target"
+                                            DisplayMemberBinding="{Binding Name}"
+                                            Width="120" />
+                            <GridViewColumn Header="Path"
+                                            DisplayMemberBinding="{Binding Path}"
+                                            Width="300" />
+                            <GridViewColumn Header="Exists"
+                                            DisplayMemberBinding="{Binding Exists}"
+                                            Width="72" />
+                            <GridViewColumn Header="Size"
+                                            DisplayMemberBinding="{Binding Size}"
+                                            Width="88" />
+                            <GridViewColumn Header="Status"
+                                            DisplayMemberBinding="{Binding Status}"
+                                            Width="120" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
                 <TextBlock x:Name="TotalReclaimableResultText"
-                           Text="Total reclaimable space: Not scanned" />
+                           Text="Total reclaimable space: Not scanned"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           FontWeight="SemiBold"
+                           Margin="0,12,0,0" />
                 <TextBlock x:Name="StatusText"
                            Foreground="#8A1C1C"
                            TextWrapping="Wrap"
@@ -56,7 +149,7 @@
 
         <TextBlock Grid.Row="3"
                    Text="This version only scans. It does not delete files."
-                   Foreground="#5C6670"
+                   Foreground="{StaticResource TextSecondaryBrush}"
                    Margin="0,16,0,0" />
     </Grid>
 </Window>
