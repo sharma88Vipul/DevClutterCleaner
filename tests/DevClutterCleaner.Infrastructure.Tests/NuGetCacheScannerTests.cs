@@ -77,6 +77,9 @@ public sealed class NuGetCacheScannerTests : IDisposable
 
     private sealed class StubDirectorySizeCalculator : IDirectorySizeCalculator
     {
-        public long CalculateSize(string path, CancellationToken cancellationToken) => 0;
+        public long CalculateSize(
+            string path,
+            CancellationToken cancellationToken,
+            IProgress<string>? progress = null) => 0;
     }
 }

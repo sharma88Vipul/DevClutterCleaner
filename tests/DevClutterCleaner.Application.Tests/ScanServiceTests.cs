@@ -83,7 +83,9 @@ public sealed class ScanServiceTests
 
         public string GetTargetPath() => result.Target.Path;
 
-        public Task<ScanResult> ScanAsync(CancellationToken cancellationToken) => Task.FromResult(result);
+        public Task<ScanResult> ScanAsync(
+            CancellationToken cancellationToken,
+            IProgress<ScanProgress>? progress = null) => Task.FromResult(result);
     }
 
     private sealed class ThrowingScanner : ICacheScanner
@@ -96,6 +98,8 @@ public sealed class ScanServiceTests
 
         public string GetTargetPath() => string.Empty;
 
-        public Task<ScanResult> ScanAsync(CancellationToken cancellationToken) => throw new InvalidOperationException("Scan failed.");
+        public Task<ScanResult> ScanAsync(
+            CancellationToken cancellationToken,
+            IProgress<ScanProgress>? progress = null) => throw new InvalidOperationException("Scan failed.");
     }
 }

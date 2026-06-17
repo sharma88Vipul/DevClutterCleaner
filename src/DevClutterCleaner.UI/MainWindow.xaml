@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="DevClutterCleaner"
-        Height="460"
-        Width="760"
-        MinHeight="420"
-        MinWidth="640"
-        Background="#F4F6F8"
+        Height="700"
+        Width="1160"
+        MinHeight="620"
+        MinWidth="1020"
+        Background="#EEF2F6"
         FontFamily="Segoe UI">
     <Window.Resources>
         <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1F2933" />
@@ -17,9 +17,12 @@
         <SolidColorBrush x:Key="PrimaryBrush" Color="#2563EB" />
         <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#1D4ED8" />
         <SolidColorBrush x:Key="PrimaryPressedBrush" Color="#1E40AF" />
-        <SolidColorBrush x:Key="BorderBrushSoft" Color="#D7DCE1" />
+        <SolidColorBrush x:Key="BorderBrushSoft" Color="#D5DCE5" />
         <SolidColorBrush x:Key="SurfaceBrush" Color="White" />
-        <SolidColorBrush x:Key="RowAltBrush" Color="#F8FAFC" />
+        <SolidColorBrush x:Key="RowAltBrush" Color="#F9FBFD" />
+        <SolidColorBrush x:Key="SuccessBrush" Color="#0F766E" />
+        <SolidColorBrush x:Key="WarningBrush" Color="#B45309" />
+        <SolidColorBrush x:Key="DangerBrush" Color="#B91C1C" />
 
         <Style x:Key="PrimaryButtonStyle" TargetType="{x:Type Button}">
             <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
@@ -27,9 +30,9 @@
             <Setter Property="Foreground" Value="White" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Height" Value="38" />
-            <Setter Property="MinWidth" Value="124" />
-            <Setter Property="Padding" Value="18,0" />
+            <Setter Property="Height" Value="42" />
+            <Setter Property="MinWidth" Value="144" />
+            <Setter Property="Padding" Value="20,0" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -67,23 +70,35 @@
         </Style>
 
         <Style TargetType="{x:Type DataGridColumnHeader}">
-            <Setter Property="Background" Value="#EEF2F7" />
+            <Setter Property="Background" Value="#F1F5F9" />
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="Padding" Value="12,10" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}" />
             <Setter Property="BorderThickness" Value="0,0,1,1" />
         </Style>
 
         <Style TargetType="{x:Type DataGridCell}">
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="10,7" />
+            <Setter Property="Padding" Value="12,9" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         </Style>
+
+        <Style x:Key="MetricLabelStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style x:Key="MetricValueStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,4,0,0" />
+        </Style>
     </Window.Resources>
 
-    <Grid Margin="24">
+    <Grid Margin="28">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -91,36 +106,181 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel>
-            <TextBlock Text="DevClutterCleaner"
-                       FontSize="24"
-                       FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}" />
-            <TextBlock Text="MVP scanner for developer cache usage"
-                       Foreground="{StaticResource TextSecondaryBrush}"
-                       Margin="0,4,0,0" />
-        </StackPanel>
-
-        <Button x:Name="ScanButton"
-                Grid.Row="1"
-                Style="{StaticResource PrimaryButtonStyle}"
-                Margin="0,24,0,16"
-                HorizontalAlignment="Left"
-                Click="ScanButton_Click">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock x:Name="ScanButtonIcon"
-                           Text="&#xE721;"
-                           FontFamily="Segoe MDL2 Assets"
-                           FontSize="15"
-                           Margin="0,0,8,0"
-                           VerticalAlignment="Center" />
-                <TextBlock x:Name="ScanButtonText"
-                           Text="Scan caches"
-                           VerticalAlignment="Center" />
+        <Border Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrushSoft}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="18">
+            <DockPanel>
+            <StackPanel DockPanel.Dock="Left">
+                <TextBlock Text="DevClutterCleaner"
+                           FontSize="25"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Developer cache scanner and cleanup planner"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,4,0,0" />
             </StackPanel>
-        </Button>
+            <Border DockPanel.Dock="Right"
+                    Background="#ECFDF5"
+                    BorderBrush="#A7F3D0"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10,6"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top">
+                <TextBlock Text="Read-only scanner mode"
+                           Foreground="{StaticResource SuccessBrush}"
+                           FontWeight="SemiBold" />
+            </Border>
+            </DockPanel>
+        </Border>
 
-        <Border Grid.Row="2"
+        <Border Grid.Row="1"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrushSoft}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="16"
+                Margin="0,16,0,16">
+            <DockPanel>
+                <Button x:Name="ScanButton"
+                        DockPanel.Dock="Left"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        HorizontalAlignment="Left"
+                        Click="ScanButton_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="ScanButtonIcon"
+                                   Text="&#xE721;"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="15"
+                                   Margin="0,0,8,0"
+                                   VerticalAlignment="Center" />
+                        <TextBlock x:Name="ScanButtonText"
+                                   Text="Scan caches"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <StackPanel DockPanel.Dock="Right"
+                            HorizontalAlignment="Right">
+                    <TextBlock Text="Last scan"
+                               Style="{StaticResource MetricLabelStyle}"
+                               HorizontalAlignment="Right" />
+                    <TextBlock x:Name="LastScanHeaderText"
+                               Text="Never"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Right"
+                               Margin="0,4,0,0" />
+                </StackPanel>
+
+                <StackPanel Margin="18,0,0,0"
+                            VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="ScanLoaderIcon"
+                                   Text="&#xE895;"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="14"
+                                   Foreground="{StaticResource PrimaryBrush}"
+                                   RenderTransformOrigin="0.5,0.5"
+                                   Visibility="Collapsed"
+                                   Margin="0,0,8,0">
+                            <TextBlock.RenderTransform>
+                                <RotateTransform x:Name="ScanLoaderRotateTransform" Angle="0" />
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                        <TextBlock x:Name="ScanActivityText"
+                                   Text="Ready"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontWeight="SemiBold" />
+                    </StackPanel>
+                    <TextBlock x:Name="CurrentFileText"
+                               Text="No scan has been run yet."
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="12"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="620"
+                               Margin="0,4,0,0" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="2"
+              Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrushSoft}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14"
+                    Margin="0,0,10,0">
+                <StackPanel>
+                    <TextBlock Text="Total reclaimable" Style="{StaticResource MetricLabelStyle}" />
+                    <TextBlock x:Name="TotalReclaimableMetricText" Text="-" Style="{StaticResource MetricValueStyle}" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrushSoft}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14"
+                    Margin="0,0,10,0">
+                <StackPanel>
+                    <TextBlock Text="Targets scanned" Style="{StaticResource MetricLabelStyle}" />
+                    <TextBlock x:Name="TargetsScannedMetricText" Text="0" Style="{StaticResource MetricValueStyle}" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrushSoft}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14"
+                    Margin="0,0,10,0">
+                <StackPanel>
+                    <TextBlock Text="Low-risk targets" Style="{StaticResource MetricLabelStyle}" />
+                    <TextBlock x:Name="LowRiskMetricText" Text="0" Style="{StaticResource MetricValueStyle}" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="3"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrushSoft}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14"
+                    Margin="0,0,10,0">
+                <StackPanel>
+                    <TextBlock Text="Needs review" Style="{StaticResource MetricLabelStyle}" />
+                    <TextBlock x:Name="NeedsReviewMetricText" Text="0" Style="{StaticResource MetricValueStyle}" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="4"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrushSoft}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14">
+                <StackPanel>
+                    <TextBlock Text="Last scan" Style="{StaticResource MetricLabelStyle}" />
+                    <TextBlock x:Name="LastScanMetricText" Text="Never" Style="{StaticResource MetricValueStyle}" FontSize="16" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="3"
                 Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrushSoft}"
                 BorderThickness="1"
@@ -147,7 +307,7 @@
                 </DockPanel>
 
                 <ProgressBar x:Name="ScanProgressBar"
-                             Height="4"
+                             Height="5"
                              IsIndeterminate="False"
                              Visibility="Collapsed"
                              Foreground="{StaticResource PrimaryBrush}"
@@ -168,26 +328,42 @@
                           Background="White"
                           BorderBrush="{StaticResource BorderBrushSoft}"
                           BorderThickness="1"
-                          MinHeight="190"
-                          RowHeight="34"
+                          MinHeight="270"
+                          MinRowHeight="42"
                           SelectionMode="Single"
                           SelectionUnit="FullRow">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Target"
                                             Binding="{Binding Name}"
-                                            Width="135" />
+                                            Width="125" />
+                        <DataGridTextColumn Header="Category"
+                                            Binding="{Binding Category}"
+                                            Width="120" />
                         <DataGridTextColumn Header="Current path"
                                             Binding="{Binding Path}"
-                                            Width="*" />
+                                            Width="260" />
                         <DataGridTextColumn Header="Exists"
                                             Binding="{Binding Exists}"
-                                            Width="80" />
+                                            Width="70" />
                         <DataGridTextColumn Header="Size"
                                             Binding="{Binding Size}"
-                                            Width="95" />
+                                            Width="90" />
+                        <DataGridTextColumn Header="Risk"
+                                            Binding="{Binding Risk}"
+                                            Width="90" />
                         <DataGridTextColumn Header="Status"
                                             Binding="{Binding Status}"
                                             Width="130" />
+                        <DataGridTemplateColumn Header="Recommendation"
+                                                Width="360">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Recommendation}"
+                                               TextWrapping="Wrap"
+                                               VerticalAlignment="Center" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
                 <TextBlock x:Name="TotalReclaimableResultText"
@@ -202,8 +378,8 @@
             </StackPanel>
         </Border>
 
-        <TextBlock Grid.Row="3"
-                   Text="This version only scans. It does not delete files."
+        <TextBlock Grid.Row="4"
+                   Text="Phase 3 desktop UI: scan, classify, and plan safely. Cleanup execution is still not exposed in the dashboard."
                    Foreground="{StaticResource TextSecondaryBrush}"
                    Margin="0,16,0,0" />
     </Grid>

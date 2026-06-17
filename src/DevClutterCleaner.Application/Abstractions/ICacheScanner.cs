@@ -12,5 +12,7 @@ public interface ICacheScanner
 
     string GetTargetPath();
 
-    Task<ScanResult> ScanAsync(CancellationToken cancellationToken);
+    Task<ScanResult> ScanAsync(
+        CancellationToken cancellationToken,
+        IProgress<ScanProgress>? progress = null);
 }

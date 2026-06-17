@@ -2,7 +2,10 @@ namespace DevClutterCleaner.Infrastructure.FileSystem;
 
 public sealed class DirectorySizeCalculator : IDirectorySizeCalculator
 {
-    public long CalculateSize(string path, CancellationToken cancellationToken)
+    public long CalculateSize(
+        string path,
+        CancellationToken cancellationToken,
+        IProgress<string>? progress = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -11,12 +14,17 @@ public sealed class DirectorySizeCalculator : IDirectorySizeCalculator
             return 0;
         }
 
-        return CalculateSizeSafe(new DirectoryInfo(path), cancellationToken);
+        return CalculateSizeSafe(new DirectoryInfo(path), cancellationToken, progress, new TraversalProgressState());
     }
 
-    private static long CalculateSizeSafe(DirectoryInfo directory, CancellationToken cancellationToken)
+    private static long CalculateSizeSafe(
+        DirectoryInfo directory,
+        CancellationToken cancellationToken,
+        IProgress<string>? progress,
+        TraversalProgressState progressState)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        progress?.Report(directory.FullName);
 
         long total = 0;
 
@@ -26,6 +34,11 @@ public sealed class DirectorySizeCalculator : IDirectorySizeCalculator
 
             try
             {
+                if (progressState.ShouldReportFile())
+                {
+                    progress?.Report(file.FullName);
+                }
+
                 total += file.Length;
             }
             catch (IOException)
@@ -39,7 +52,7 @@ public sealed class DirectorySizeCalculator : IDirectorySizeCalculator
         foreach (DirectoryInfo childDirectory in EnumerateDirectoriesSafe(directory))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            total += CalculateSizeSafe(childDirectory, cancellationToken);
+            total += CalculateSizeSafe(childDirectory, cancellationToken, progress, progressState);
         }
 
         return total;
@@ -74,6 +87,17 @@ public sealed class DirectorySizeCalculator : IDirectorySizeCalculator
         catch (UnauthorizedAccessException)
         {
             return [];
+        }
+    }
+
+    private sealed class TraversalProgressState
+    {
+        private int _fileCount;
+
+        public bool ShouldReportFile()
+        {
+            _fileCount++;
+            return _fileCount is 1 || _fileCount % 25 is 0;
         }
     }
 }

@@ -30,11 +30,14 @@ public sealed class NuGetCacheScanner : ICacheScanner
 
     public string GetTargetPath() => _pathProvider();
 
-    public Task<ScanResult> ScanAsync(CancellationToken cancellationToken)
+    public Task<ScanResult> ScanAsync(
+        CancellationToken cancellationToken,
+        IProgress<ScanProgress>? progress = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         string path = GetTargetPath();
+        progress?.Report(new ScanProgress(TargetDisplayName, path));
         CacheTarget target = new(
             ScannerId,
             TargetDisplayName,
@@ -49,7 +52,10 @@ public sealed class NuGetCacheScanner : ICacheScanner
 
         try
         {
-            long size = _directorySizeCalculator.CalculateSize(path, cancellationToken);
+            long size = _directorySizeCalculator.CalculateSize(
+                path,
+                cancellationToken,
+                new Progress<string>(currentPath => progress?.Report(new ScanProgress(TargetDisplayName, currentPath))));
             return Task.FromResult(new ScanResult(target, size, Exists: true));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
