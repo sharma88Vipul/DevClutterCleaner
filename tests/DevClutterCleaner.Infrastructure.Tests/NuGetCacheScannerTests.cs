@@ -13,12 +13,12 @@ public sealed class NuGetCacheScannerTests : IDisposable
     }
 
     [Fact]
-    public void Scan_ReturnsMissingResult_WhenNuGetCacheFolderDoesNotExist()
+    public async Task ScanAsync_ReturnsMissingResult_WhenNuGetCacheFolderDoesNotExist()
     {
         string missingPath = Path.Combine(_rootPath, "missing-packages");
         NuGetCacheScanner scanner = new(new DirectorySizeCalculator(), () => missingPath);
 
-        var result = scanner.Scan();
+        var result = await scanner.ScanAsync(CancellationToken.None);
 
         Assert.False(result.Exists);
         Assert.Equal(0, result.SizeInBytes);
@@ -26,14 +26,14 @@ public sealed class NuGetCacheScannerTests : IDisposable
     }
 
     [Fact]
-    public void Scan_ReturnsCacheSize_WhenNuGetCacheFolderExists()
+    public async Task ScanAsync_ReturnsCacheSize_WhenNuGetCacheFolderExists()
     {
         string packagesPath = Path.Combine(_rootPath, "packages");
         Directory.CreateDirectory(packagesPath);
         File.WriteAllBytes(Path.Combine(packagesPath, "package.nupkg"), new byte[64]);
         NuGetCacheScanner scanner = new(new DirectorySizeCalculator(), () => packagesPath);
 
-        var result = scanner.Scan();
+        var result = await scanner.ScanAsync(CancellationToken.None);
 
         Assert.True(result.Exists);
         Assert.Equal(64, result.SizeInBytes);

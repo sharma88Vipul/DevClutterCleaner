@@ -22,9 +22,9 @@ public partial class MainWindow : Window
         ]);
     }
 
-    private void ScanButton_Click(object sender, RoutedEventArgs e)
+    private async void ScanButton_Click(object sender, RoutedEventArgs e)
     {
-        IReadOnlyList<ScanResult> results = _scanService.ScanAll();
+        IReadOnlyList<ScanResult> results = await _scanService.ScanAllAsync(CancellationToken.None);
         ScanResult? nugetResult = results.FirstOrDefault(result => result.Target.Id == NuGetCacheScanner.ScannerId);
 
         if (nugetResult is null)

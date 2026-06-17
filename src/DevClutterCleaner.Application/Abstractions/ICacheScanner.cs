@@ -6,5 +6,7 @@ public interface ICacheScanner
 {
     string Id { get; }
 
-    ScanResult Scan();
+    CacheCategory TargetType { get; }
+
+    Task<ScanResult> ScanAsync(CancellationToken cancellationToken);
 }

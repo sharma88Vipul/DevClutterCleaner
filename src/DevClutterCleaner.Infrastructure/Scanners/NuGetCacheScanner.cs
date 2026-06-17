@@ -24,29 +24,33 @@ public sealed class NuGetCacheScanner : ICacheScanner
 
     public string Id => ScannerId;
 
-    public ScanResult Scan()
+    public CacheCategory TargetType => CacheCategory.PackageManager;
+
+    public Task<ScanResult> ScanAsync(CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         string path = _pathProvider();
         CacheTarget target = new(
             ScannerId,
             "NuGet Cache",
-            CacheCategory.PackageManager,
+            TargetType,
             path,
             IsSafeToCleanByDefault: true);
 
         if (!Directory.Exists(path))
         {
-            return new ScanResult(target, 0, Exists: false);
+            return Task.FromResult(new ScanResult(target, 0, Exists: false));
         }
 
         try
         {
             long size = _directorySizeCalculator.CalculateSize(path);
-            return new ScanResult(target, size, Exists: true);
+            return Task.FromResult(new ScanResult(target, size, Exists: true));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return new ScanResult(target, 0, Exists: true, ErrorMessage: ex.Message);
+            return Task.FromResult(new ScanResult(target, 0, Exists: true, ErrorMessage: ex.Message));
         }
     }
 

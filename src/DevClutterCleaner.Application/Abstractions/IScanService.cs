@@ -2,7 +2,6 @@ using DevClutterCleaner.Domain;
 
 namespace DevClutterCleaner.Application.Abstractions;
 
-public interface IScanService
+public interface IScanService : ICacheScanOrchestrator
 {
-    IReadOnlyList<ScanResult> ScanAll();
 }

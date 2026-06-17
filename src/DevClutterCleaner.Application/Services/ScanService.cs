@@ -7,20 +7,22 @@ public sealed class ScanService(IEnumerable<ICacheScanner> scanners) : IScanServ
 {
     private readonly IReadOnlyList<ICacheScanner> _scanners = scanners.ToArray();
 
-    public IReadOnlyList<ScanResult> ScanAll()
+    public async Task<IReadOnlyList<ScanResult>> ScanAllAsync(CancellationToken cancellationToken)
     {
         List<ScanResult> results = [];
 
         foreach (ICacheScanner scanner in _scanners)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
-                results.Add(scanner.Scan());
+                results.Add(await scanner.ScanAsync(cancellationToken));
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 results.Add(new ScanResult(
-                    new CacheTarget(scanner.Id, scanner.Id, CacheCategory.Other, string.Empty, false),
+                    new CacheTarget(scanner.Id, scanner.Id, scanner.TargetType, string.Empty, false),
                     0,
                     Exists: false,
                     ErrorMessage: ex.Message));
