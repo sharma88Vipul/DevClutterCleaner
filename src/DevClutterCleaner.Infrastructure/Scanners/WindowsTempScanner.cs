@@ -24,16 +24,20 @@ public sealed class WindowsTempScanner : ICacheScanner
 
     public string Id => ScannerId;
 
+    public string TargetDisplayName => "Windows Temp";
+
     public CacheCategory TargetType => CacheCategory.TemporaryFiles;
+
+    public string GetTargetPath() => _pathProvider();
 
     public Task<ScanResult> ScanAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string path = _pathProvider();
+        string path = GetTargetPath();
         CacheTarget target = new(
             ScannerId,
-            "Windows Temp",
+            TargetDisplayName,
             TargetType,
             path,
             IsSafeToCleanByDefault: false);

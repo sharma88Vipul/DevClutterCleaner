@@ -77,7 +77,11 @@ public sealed class ScanServiceTests
     {
         public string Id => result.Target.Id;
 
+        public string TargetDisplayName => result.Target.DisplayName;
+
         public CacheCategory TargetType => result.Target.Category;
+
+        public string GetTargetPath() => result.Target.Path;
 
         public Task<ScanResult> ScanAsync(CancellationToken cancellationToken) => Task.FromResult(result);
     }
@@ -86,7 +90,11 @@ public sealed class ScanServiceTests
     {
         public string Id => "throwing-scanner";
 
+        public string TargetDisplayName => "Throwing Scanner";
+
         public CacheCategory TargetType => CacheCategory.Other;
+
+        public string GetTargetPath() => string.Empty;
 
         public Task<ScanResult> ScanAsync(CancellationToken cancellationToken) => throw new InvalidOperationException("Scan failed.");
     }

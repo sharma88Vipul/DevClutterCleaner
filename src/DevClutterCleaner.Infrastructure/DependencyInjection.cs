@@ -16,6 +16,9 @@ public static class DependencyInjection
         services.AddSingleton<ICacheScanner, WindowsTempScanner>();
         services.AddSingleton<ICacheScanOrchestrator, CacheScanOrchestrator>();
         services.AddSingleton<IScanService, ScanService>();
+        services.AddSingleton<ICleanupPlanner, CleanupPlanner>();
+        services.AddSingleton<ICleanupExecutor, RecycleBinCleanupExecutor>();
+        services.AddSingleton<ICleanupService, CleanupService>();
 
         return services;
     }

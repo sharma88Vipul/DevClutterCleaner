@@ -24,16 +24,20 @@ public sealed class NuGetCacheScanner : ICacheScanner
 
     public string Id => ScannerId;
 
+    public string TargetDisplayName => "NuGet Cache";
+
     public CacheCategory TargetType => CacheCategory.PackageManager;
+
+    public string GetTargetPath() => _pathProvider();
 
     public Task<ScanResult> ScanAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string path = _pathProvider();
+        string path = GetTargetPath();
         CacheTarget target = new(
             ScannerId,
-            "NuGet Cache",
+            TargetDisplayName,
             TargetType,
             path,
             IsSafeToCleanByDefault: true);

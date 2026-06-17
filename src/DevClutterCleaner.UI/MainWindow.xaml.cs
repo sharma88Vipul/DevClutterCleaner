@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Windows;
 using DevClutterCleaner.Application.Abstractions;
 using DevClutterCleaner.Application.Formatting;
@@ -10,7 +11,8 @@ namespace DevClutterCleaner.UI;
 public partial class MainWindow : Window
 {
     private readonly ServiceProvider _serviceProvider;
-    private readonly ICacheScanOrchestrator _scanOrchestrator;
+    private readonly IReadOnlyList<ICacheScanner> _scanners;
+    private readonly ObservableCollection<ScanResultRow> _rows = [];
 
     public MainWindow()
     {
@@ -19,37 +21,93 @@ public partial class MainWindow : Window
         _serviceProvider = new ServiceCollection()
             .AddDevClutterCleanerInfrastructure()
             .BuildServiceProvider();
-        _scanOrchestrator = _serviceProvider.GetRequiredService<ICacheScanOrchestrator>();
+        _scanners = _serviceProvider.GetServices<ICacheScanner>().ToArray();
+        ResultsGrid.ItemsSource = _rows;
+        ScanCountText.Text = $"0 / {_scanners.Count}";
     }
 
     private async void ScanButton_Click(object sender, RoutedEventArgs e)
     {
         ScanButton.IsEnabled = false;
+        ScanButtonText.Text = "Scanning";
         StatusText.Text = string.Empty;
+        CurrentScanText.Text = "Preparing scanner targets...";
+        ScanProgressBar.Visibility = Visibility.Visible;
+        ScanProgressBar.IsIndeterminate = true;
+        TotalReclaimableResultText.Text = "Total reclaimable space: Scanning...";
+        _rows.Clear();
+
+        foreach (ICacheScanner scanner in _scanners)
+        {
+            _rows.Add(CreatePendingRow(scanner));
+        }
 
         try
         {
-            IReadOnlyList<ScanResult> results = await _scanOrchestrator.ScanAllAsync(CancellationToken.None);
-            ResultsList.ItemsSource = results
-                .OrderBy(result => result.Target.DisplayName)
-                .Select(CreateRow)
-                .ToArray();
+            List<ScanResult> results = [];
 
-            long totalBytes = results.Where(result => result.Exists && string.IsNullOrWhiteSpace(result.ErrorMessage))
+            for (int index = 0; index < _scanners.Count; index++)
+            {
+                ICacheScanner scanner = _scanners[index];
+                ScanResultRow row = _rows[index];
+                row.Status = "Scanning";
+                row.Path = scanner.GetTargetPath();
+                CurrentScanText.Text = $"Scanning {scanner.TargetDisplayName}: {row.Path}";
+                ScanCountText.Text = $"{index} / {_scanners.Count}";
+                ResultsGrid.Items.Refresh();
+
+                await Task.Yield();
+
+                try
+                {
+                    ScanResult result = await scanner.ScanAsync(CancellationToken.None);
+                    results.Add(result);
+                    ApplyResult(row, result);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    row.Status = ex.Message;
+                    row.Exists = "No";
+                    row.Size = "0 B";
+                }
+
+                ScanCountText.Text = $"{index + 1} / {_scanners.Count}";
+                ResultsGrid.Items.Refresh();
+            }
+
+            long totalBytes = results
+                .Where(result => result.Exists && string.IsNullOrWhiteSpace(result.ErrorMessage))
                 .Sum(result => result.SizeInBytes);
             TotalReclaimableResultText.Text = $"Total reclaimable space: {FileSizeFormatter.Format(totalBytes)}";
+            CurrentScanText.Text = "Scan complete.";
         }
         catch (OperationCanceledException)
         {
             StatusText.Text = "Scan canceled.";
+            CurrentScanText.Text = "Scan canceled.";
         }
         finally
         {
+            ScanProgressBar.IsIndeterminate = false;
+            ScanProgressBar.Visibility = Visibility.Collapsed;
+            ScanButtonText.Text = "Scan caches";
             ScanButton.IsEnabled = true;
         }
     }
 
-    private static ScanResultRow CreateRow(ScanResult result)
+    private static ScanResultRow CreatePendingRow(ICacheScanner scanner)
+    {
+        return new ScanResultRow
+        {
+            Name = scanner.TargetDisplayName,
+            Path = scanner.GetTargetPath(),
+            Exists = "-",
+            Size = "-",
+            Status = "Pending"
+        };
+    }
+
+    private static void ApplyResult(ScanResultRow row, ScanResult result)
     {
         string status = "Scanned";
         if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
@@ -61,12 +119,11 @@ public partial class MainWindow : Window
             status = "Not found";
         }
 
-        return new ScanResultRow(
-            result.Target.DisplayName,
-            result.Target.Path,
-            result.Exists ? "Yes" : "No",
-            FileSizeFormatter.Format(result.SizeInBytes),
-            status);
+        row.Name = result.Target.DisplayName;
+        row.Path = result.Target.Path;
+        row.Exists = result.Exists ? "Yes" : "No";
+        row.Size = FileSizeFormatter.Format(result.SizeInBytes);
+        row.Status = status;
     }
 
     protected override void OnClosed(EventArgs e)
@@ -75,5 +132,16 @@ public partial class MainWindow : Window
         base.OnClosed(e);
     }
 
-    private sealed record ScanResultRow(string Name, string Path, string Exists, string Size, string Status);
+    private sealed class ScanResultRow
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public string Path { get; set; } = string.Empty;
+
+        public string Exists { get; set; } = string.Empty;
+
+        public string Size { get; set; } = string.Empty;
+
+        public string Status { get; set; } = string.Empty;
+    }
 }

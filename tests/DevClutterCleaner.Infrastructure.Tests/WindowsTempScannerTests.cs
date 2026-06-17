@@ -28,6 +28,19 @@ public sealed class WindowsTempScannerTests : IDisposable
     }
 
     [Fact]
+    public async Task ScanAsync_ReturnsMissingResult_WhenTempFolderDoesNotExist()
+    {
+        string missingPath = Path.Combine(_rootPath, "missing-temp");
+        WindowsTempScanner scanner = new(new DirectorySizeCalculator(), () => missingPath);
+
+        var result = await scanner.ScanAsync(CancellationToken.None);
+
+        Assert.False(result.Exists);
+        Assert.Equal(0, result.SizeInBytes);
+        Assert.Equal(missingPath, result.Target.Path);
+    }
+
+    [Fact]
     public async Task ScanAsync_UsesPathGetTempPathByDefault()
     {
         WindowsTempScanner scanner = new(new StubDirectorySizeCalculator());

@@ -19,5 +19,7 @@ public sealed class DependencyInjectionTests
         Assert.Contains(scanners, scanner => scanner is NpmCacheScanner);
         Assert.Contains(scanners, scanner => scanner is WindowsTempScanner);
         Assert.NotNull(serviceProvider.GetRequiredService<ICacheScanOrchestrator>());
+        Assert.NotNull(serviceProvider.GetRequiredService<ICleanupPlanner>());
+        Assert.NotNull(serviceProvider.GetRequiredService<ICleanupService>());
     }
 }

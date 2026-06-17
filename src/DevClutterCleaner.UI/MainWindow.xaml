@@ -18,6 +18,8 @@
         <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#1D4ED8" />
         <SolidColorBrush x:Key="PrimaryPressedBrush" Color="#1E40AF" />
         <SolidColorBrush x:Key="BorderBrushSoft" Color="#D7DCE1" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="White" />
+        <SolidColorBrush x:Key="RowAltBrush" Color="#F8FAFC" />
 
         <Style x:Key="PrimaryButtonStyle" TargetType="{x:Type Button}">
             <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
@@ -40,6 +42,7 @@
                                 SnapsToDevicePixels="True">
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
                                               RecognizesAccessKey="True" />
                         </Border>
                         <ControlTemplate.Triggers>
@@ -63,12 +66,20 @@
             </Setter>
         </Style>
 
-        <Style TargetType="{x:Type GridViewColumnHeader}">
+        <Style TargetType="{x:Type DataGridColumnHeader}">
             <Setter Property="Background" Value="#EEF2F7" />
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Padding" Value="8,7" />
+            <Setter Property="Padding" Value="10,8" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}" />
+            <Setter Property="BorderThickness" Value="0,0,1,1" />
+        </Style>
+
+        <Style TargetType="{x:Type DataGridCell}">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="10,7" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         </Style>
     </Window.Resources>
 
@@ -92,49 +103,93 @@
 
         <Button x:Name="ScanButton"
                 Grid.Row="1"
-                Content="Scan caches"
                 Style="{StaticResource PrimaryButtonStyle}"
                 Margin="0,24,0,16"
                 HorizontalAlignment="Left"
-                Click="ScanButton_Click" />
+                Click="ScanButton_Click">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="ScanButtonIcon"
+                           Text="&#xE721;"
+                           FontFamily="Segoe MDL2 Assets"
+                           FontSize="15"
+                           Margin="0,0,8,0"
+                           VerticalAlignment="Center" />
+                <TextBlock x:Name="ScanButtonText"
+                           Text="Scan caches"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Button>
 
         <Border Grid.Row="2"
-                Background="White"
+                Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrushSoft}"
                 BorderThickness="1"
                 CornerRadius="8"
                 Padding="18">
             <StackPanel>
-                <TextBlock Text="Results"
-                           Foreground="{StaticResource TextPrimaryBrush}"
-                           FontWeight="SemiBold"
-                           Margin="0,0,0,12" />
-                <ListView x:Name="ResultsList"
-                          MinHeight="170"
+                <DockPanel Margin="0,0,0,12">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Text="Scan results"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontWeight="SemiBold" />
+                        <TextBlock x:Name="CurrentScanText"
+                                   Text="Ready to scan NuGet, npm, and Windows Temp."
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   FontSize="12"
+                                   Margin="0,3,0,0" />
+                    </StackPanel>
+                    <TextBlock x:Name="ScanCountText"
+                               DockPanel.Dock="Right"
+                               Text="0 / 3"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Right" />
+                </DockPanel>
+
+                <ProgressBar x:Name="ScanProgressBar"
+                             Height="4"
+                             IsIndeterminate="False"
+                             Visibility="Collapsed"
+                             Foreground="{StaticResource PrimaryBrush}"
+                             Background="#E8EDF3"
+                             Margin="0,0,0,12" />
+
+                <DataGrid x:Name="ResultsGrid"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeRows="False"
+                          IsReadOnly="True"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#E8EDF3"
+                          RowBackground="White"
+                          AlternatingRowBackground="{StaticResource RowAltBrush}"
                           Background="White"
                           BorderBrush="{StaticResource BorderBrushSoft}"
                           BorderThickness="1"
-                          Padding="0">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Target"
-                                            DisplayMemberBinding="{Binding Name}"
-                                            Width="120" />
-                            <GridViewColumn Header="Path"
-                                            DisplayMemberBinding="{Binding Path}"
-                                            Width="300" />
-                            <GridViewColumn Header="Exists"
-                                            DisplayMemberBinding="{Binding Exists}"
-                                            Width="72" />
-                            <GridViewColumn Header="Size"
-                                            DisplayMemberBinding="{Binding Size}"
-                                            Width="88" />
-                            <GridViewColumn Header="Status"
-                                            DisplayMemberBinding="{Binding Status}"
-                                            Width="120" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                          MinHeight="190"
+                          RowHeight="34"
+                          SelectionMode="Single"
+                          SelectionUnit="FullRow">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Target"
+                                            Binding="{Binding Name}"
+                                            Width="135" />
+                        <DataGridTextColumn Header="Current path"
+                                            Binding="{Binding Path}"
+                                            Width="*" />
+                        <DataGridTextColumn Header="Exists"
+                                            Binding="{Binding Exists}"
+                                            Width="80" />
+                        <DataGridTextColumn Header="Size"
+                                            Binding="{Binding Size}"
+                                            Width="95" />
+                        <DataGridTextColumn Header="Status"
+                                            Binding="{Binding Status}"
+                                            Width="130" />
+                    </DataGrid.Columns>
+                </DataGrid>
                 <TextBlock x:Name="TotalReclaimableResultText"
                            Text="Total reclaimable space: Not scanned"
                            Foreground="{StaticResource TextPrimaryBrush}"
