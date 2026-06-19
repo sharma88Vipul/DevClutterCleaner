@@ -189,6 +189,78 @@
                                        VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
+
+                    <Button x:Name="CleanSelectedButton"
+                            Height="42"
+                            MinWidth="142"
+                            Padding="18,0"
+                            Margin="12,0,0,0"
+                            Click="CleanSelectedButton_Click"
+                            IsEnabled="False">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE74D;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       FontSize="15"
+                                       Margin="0,0,8,0"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="Clean selected"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="ExportCsvButton"
+                            Height="42"
+                            MinWidth="126"
+                            Padding="18,0"
+                            Margin="12,0,0,0"
+                            Click="ExportCsvButton_Click"
+                            IsEnabled="False">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE8A5;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       FontSize="15"
+                                       Margin="0,0,8,0"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="CSV"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="ExportHtmlButton"
+                            Height="42"
+                            MinWidth="126"
+                            Padding="18,0"
+                            Margin="12,0,0,0"
+                            Click="ExportHtmlButton_Click"
+                            IsEnabled="False">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE8A5;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       FontSize="15"
+                                       Margin="0,0,8,0"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="HTML"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="ExportPdfButton"
+                            Height="42"
+                            MinWidth="126"
+                            Padding="18,0"
+                            Margin="12,0,0,0"
+                            Click="ExportPdfButton_Click"
+                            IsEnabled="False">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE8A5;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       FontSize="15"
+                                       Margin="0,0,8,0"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="PDF"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1"
@@ -425,7 +497,7 @@
                           CanUserAddRows="False"
                           CanUserDeleteRows="False"
                           CanUserResizeRows="False"
-                          IsReadOnly="True"
+                          IsReadOnly="False"
                           HeadersVisibility="Column"
                           GridLinesVisibility="Horizontal"
                           HorizontalGridLinesBrush="#E8EDF3"
@@ -440,26 +512,46 @@
                           SelectionMode="Single"
                           SelectionUnit="FullRow">
                     <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Clean"
+                                                Width="62">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              IsChecked="{Binding IsSelectedForCleanup, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              IsEnabled="{Binding CanSelectForCleanup}"
+                                              Checked="CleanupSelection_Changed"
+                                              Unchecked="CleanupSelection_Changed" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Target"
                                             Binding="{Binding Name}"
+                                            IsReadOnly="True"
                                             Width="125" />
                         <DataGridTextColumn Header="Category"
                                             Binding="{Binding Category}"
+                                            IsReadOnly="True"
                                             Width="120" />
                         <DataGridTextColumn Header="Current path"
                                             Binding="{Binding Path}"
+                                            IsReadOnly="True"
                                             Width="260" />
                         <DataGridTextColumn Header="Exists"
                                             Binding="{Binding Exists}"
+                                            IsReadOnly="True"
                                             Width="70" />
                         <DataGridTextColumn Header="Size"
                                             Binding="{Binding Size}"
+                                            IsReadOnly="True"
                                             Width="90" />
                         <DataGridTextColumn Header="Risk"
                                             Binding="{Binding Risk}"
+                                            IsReadOnly="True"
                                             Width="90" />
                         <DataGridTextColumn Header="Status"
                                             Binding="{Binding Status}"
+                                            IsReadOnly="True"
                                             Width="130" />
                         <DataGridTemplateColumn Header="Recommendation"
                                                 Width="360">
@@ -486,7 +578,7 @@
         </Border>
 
         <TextBlock Grid.Row="5"
-                   Text="Cleanup preview uses dry-run policy evaluation only. Cleanup execution is still not exposed in the dashboard."
+                   Text="Cleanup uses explicit row selection, confirmation, and Recycle Bin move behavior."
                    Foreground="{StaticResource TextSecondaryBrush}"
                    Margin="0,16,0,0" />
     </Grid>
